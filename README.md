@@ -233,3 +233,9 @@ Get into the app
 	docker exec -it <container_id> /bin/bash
 To stop the container
 	docker container stop <container_id>
+![Docker-containerzation](https://github.com/user-attachments/assets/170494e6-e0b8-4984-b023-f9f5a7f61394)
+![4](https://github.com/user-attachments/assets/ae1a89fb-c223-4ddf-b2b5-2a705ad16a06)
+![3 2](https://github.com/user-attachments/assets/0ef40ddc-8be9-41c2-ad7d-fc392f535296)
+![3 1](https://github.com/user-attachments/assets/caf6c24c-f9b5-47c8-a398-af8f7a62cbae)
+![2](https://github.com/user-attachments/assets/f15d0398-3cdc-4c66-9d17-d78a43363a99)
+![1](https://github.com/user-attachments/assets/8136e270-aa3a-4528-9604-5328b8f3c40e)
