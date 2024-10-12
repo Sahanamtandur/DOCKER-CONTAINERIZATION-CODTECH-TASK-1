@@ -4,10 +4,10 @@ Intern ID: CT12DS2334
 Domain: DEVOPS
 Duration: September 5th to November 5th
 Mentor: SANTOSH NEELA
-
+-------------------------------------------------
 Project: KUBERNETES FOR CONTAINER ORCHESTRATION
 Technology used: AWS, Python, django
-
+--------------------------------------------------
 Overview of the project-
 # docker-spring-boot-java-web
 Docker Container With Spring Boot Web Service
