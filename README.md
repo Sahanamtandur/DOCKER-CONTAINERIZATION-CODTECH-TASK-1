@@ -13,7 +13,7 @@ Duration: September 5th to November 5th
 Mentor: SANTOSH NEELA
 
 
-Project: KUBERNETES FOR CONTAINER ORCHESTRATION
+Project: DOCKER CONTAINERIZATION
 Technology used: AWS, Python, django
 
 # docker-spring-boot-java-web
