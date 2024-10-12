@@ -1,10 +1,15 @@
 # CODTECH-TASK-2
 
 Name: Sahana M Tandur
+
 Company: CODTECH IT SOLUTIONS
+
 Intern ID: CT12DS2334
+
 Domain: DEVOPS
+
 Duration: September 5th to November 5th
+
 Mentor: SANTOSH NEELA
 
 
