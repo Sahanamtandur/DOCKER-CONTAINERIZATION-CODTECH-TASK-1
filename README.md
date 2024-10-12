@@ -17,15 +17,17 @@ Project: DOCKER CONTAINERIZATION
 
 Technology used: AWS, Python, django
 
-INSTALL DOCKER
+## INSTALL DOCKER
+
 A very detailed instructions to install Docker are provide in the below link
 
 https://docs.docker.com/get-docker/
 
-For Demo,
+For Demo, 
 
 You can create an Ubuntu EC2 Instance on AWS and run the below commands to install docker.
 
+```
 sudo apt update
 sudo apt install docker.io -y
-Start Docker and Grant Access
+```
