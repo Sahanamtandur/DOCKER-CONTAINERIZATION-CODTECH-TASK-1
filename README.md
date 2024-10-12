@@ -13,147 +13,250 @@ Duration: September 5th to November 5th
 Mentor: SANTOSH NEELA
 
 
-Project: DOCKER CONTAINERIZATION
+Project: DOCKER CONTAINERIZATION(docker-spring-boot-java-web-service) Dockerfile 
 
 Technology used: AWS, Python, django
 
-## INSTALL DOCKER
 
-A very detailed instructions to install Docker are provide in the below link
+# docker-spring-boot-java-web
+Docker Container With Spring Boot Web Service
 
-https://docs.docker.com/get-docker/
+Docker Container With Spring Boot Web Service Example
+The aim is to demonstrate a running docker container with a spring boot standalone web service thus, I've written the web service with Spring Boot as simple. For intensive a complete web service example with Spring Boot, you can check out my other repository which is spring-boot-restful-web-service-example .
 
-For Demo, 
+TOC
+0 Spring Boot Web Service
+1 Dockerfile
+2 Building The Image
+3 Running And Testing The Docker Container
+4 Getting Inside The Docker Container
+5 Stopping The Docker Container
+6 Cheat Sheet
+0 Spring Boot Web Service
+The web service we are using in this example is kept as simple as possible for the simplicity of demonstrating how to run a docker container. It has a simple controller class which is quite straight-forward as it is obvious: HelloController
 
-You can create an Ubuntu EC2 Instance on AWS and run the below commands to install docker.
+The key thing using a standalone Spring Boot application is to create a Fat Jar, also known as Uber Jar. In order to create the Uber Jar, there are two things to be done;
 
-```
-sudo apt update
-sudo apt install docker.io -y
-```
+Add an start-class to point to the class acting as the Entry Point as the example below. The reason we are doing so is, we need to reference the .jar file in the Dockerfile;
+    <properties>
+        <start-class>com.levo.dockerexample.DockerApp</start-class>
+    </properties>
+In our example, you will see the properties as below in the pom.xml file.
 
-### Start Docker and Grant Access
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <start-class>com.levo.dockerexample.DockerApp</start-class>
+    </properties>
+The second thing is, we need to know the name of our Fat Jar (a.k.a. Uber Jar). In order to do that, we use define the final name under build section of our pom.xml file as below;
+    <build>
+    	<finalName>docker-java-app-example</finalName>
+    ...
+    ...
+    </build>
+In our example, the build section is as below;
 
-A very common mistake that many beginners do is, After they install docker using the sudo access, they miss the step to Start the Docker daemon and grant acess to the user they want to use to interact with docker and run docker commands.
+    <build>
+    	<finalName>docker-java-app-example</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+As we create our Fat Jar (a.k.a. Uber Jar) and we define the final name of our jar, we are all set and we can write the Dockerfile.
 
-Always ensure the docker daemon is up and running.
+Go back to TOC
 
-A easy way to verify your Docker installation is by running the below command
+1 Dockerfile
+With the Dockerfile we can define, configure and initialize our image and container. In Dockerfile we can define;
 
-```
-docker run hello-world
-```
+Which image we are going to use. We need a docker image that has the OpenJDK and thus we are going to use Alpine;
+	FROM openjdk:8-jre-alpine
+Which shell we are going to have. I prefer Bash which I find easy to use;
+	RUN apk update && apk add bash
+The working directory our app is going to run. The name of the working directory will be app;
+	WORKDIR /app
+The files we need to copy into our image. We will need only the Uber Jar file so let's copy it into the working dir;
+	COPY /target/docker-java-app-example.jar /app
+The port number(s) that we need to expose to reach out from the container. Spring Boot default port is 8080;
+	EXPOSE 8080
+The commands that we need to run as the container goes live. And we need to add simply "java -jar <jar_file>.jar" format;
+	CMD ["java", "-jar", "docker-java-app-example.jar"]
+Notify that the CMD(command) parameters are separated with comma.
 
-If the output says:
+Then our Dockerfile will be as below;
 
-```
-docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
-See 'docker run --help'.
-```
+	# Use an official OpenJDK runtime as a parent image
+	FROM openjdk:8-jre-alpine
+	
+	# set shell to bash
+	# source: https://stackoverflow.com/a/40944512/3128926
+	RUN apk update && apk add bash
+	
+	# Set the working directory to /app
+	WORKDIR /app
+	
+	# Copy the fat jar into the container at /app
+	COPY /target/docker-java-app-example.jar /app
+	
+	# Make port 8080 available to the world outside this container
+	EXPOSE 8080
+	
+	# Run jar file when the container launches
+	CMD ["java", "-jar", "docker-java-app-example.jar"]
+Now our Dockerfile is all set, we can directly build the image.
 
-This can mean two things, 
-1. Docker deamon is not running.
-2. Your user does not have access to run docker commands.
+Go back to TOC
 
-### Start Docker daemon
+2 Building The Image
+Before building the image, we need to create the Uber Jar (aka Fat Jar) file, to do so, just clean install with maven as below;
 
-You use the below command to verify if the docker daemon is actually started and Active
+	mvn clean install
+Now our Uber Jar file is created under the target folder with the format: "target/<final_name>.jar" (or .war based on package in .pom file)
 
-```
-sudo systemctl status docker
-```
+To build the image, we will use docker build command and tag it. The last parameter will be the directory, by using dot ("."), we point to the current directory. So you must run this command on the top level directory of this repository.
 
-If you notice that the docker daemon is not running, you can start the daemon using the below command
+	docker build --tag=docker-java-hello-world-app .
+As you run the command which is written above, a successful example output will be as below;
 
-```
-sudo systemctl start docker
-```
+	C:\00_ANA\JavaEE\WS\docker-java-app-example>docker build --tag=docker-java-hello-world-app .
+	Sending build context to Docker daemon  16.85MB
+	Step 1/6 : FROM openjdk:8-jre-alpine
+	 ---> 7e72a7dcf7dc
+	Step 2/6 : RUN apk update && apk add bash
+	 ---> Running in 66ebd9812836
+	fetch http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/APKINDEX.tar.gz
+	fetch http://dl-cdn.alpinelinux.org/alpine/v3.8/community/x86_64/APKINDEX.tar.gz
+	v3.8.2-21-g54952ee375 [http://dl-cdn.alpinelinux.org/alpine/v3.8/main]
+	v3.8.2-21-g54952ee375 [http://dl-cdn.alpinelinux.org/alpine/v3.8/community]
+	OK: 9546 distinct packages available
+	(1/5) Installing ncurses-terminfo-base (6.1_p20180818-r1)
+	(2/5) Installing ncurses-terminfo (6.1_p20180818-r1)
+	(3/5) Installing ncurses-libs (6.1_p20180818-r1)
+	(4/5) Installing readline (7.0.003-r0)
+	(5/5) Installing bash (4.4.19-r1)
+	Executing bash-4.4.19-r1.post-install
+	Executing busybox-1.28.4-r2.trigger
+	OK: 91 MiB in 57 packages
+	Removing intermediate container 66ebd9812836
+	 ---> fa54653163af
+	Step 3/6 : WORKDIR /app
+	 ---> Running in c94cbad8627a
+	Removing intermediate container c94cbad8627a
+	 ---> 5a58ac387fe7
+	Step 4/6 : COPY /target/docker-java-app-example.jar /app
+	 ---> aa5930ee4a75
+	Step 5/6 : EXPOSE 8080
+	 ---> Running in 851b519d4514
+	Removing intermediate container 851b519d4514
+	 ---> 210ed5d1dc3f
+	Step 6/6 : CMD ["java", "-jar", "docker-java-app-example.jar"]
+	 ---> Running in 55b84275e095
+	Removing intermediate container 55b84275e095
+	 ---> a0c355a25236
+	Successfully built a0c355a25236
+	Successfully tagged docker-java-hello-world-app:latest
+	SECURITY WARNING: You are building a Docker image from Windows against a non-Windows Docker host. All files and directories added to build context will have '-rwxr-xr-x' permissions. It is recommended to double check and reset permissions for sensitive files and directories.
+After the image is built, you can check it with the docker image ls command. An example is as below;
 
+	C:\00_ANA\JavaEE\WS\docker-java-app-example>docker image ls
+	REPOSITORY                    TAG                 IMAGE ID            CREATED              SIZE
+	docker-java-hello-world-app   latest              a0c355a25236        About a minute ago   105MB
+	openjdk                       8-jre-alpine        7e72a7dcf7dc        5 days ago           83.1MB
+Go back to TOC
 
-### Grant Access to your user to run docker commands
+3 Running And Testing The Docker Container
+Now we have our docker image ready however, we need to run a container based on our image. We can simply run our docker container as below;
 
-To grant access to your user to run the docker command, you should add the user to the Docker Linux group. Docker group is create by default when docker is installed.
+	docker run -p 80:8080 docker-java-hello-world-app
+The format is simple;
 
-```
-sudo usermod -aG docker ubuntu
-```
+	docker run -p <external-port>:<internal-port> <image-name>
+The parameter p stands for the port. External port is the port that will be available outside of the docker container. The internal port is the port that will be available inside the docker container, which is 8080 because the default port of Spring Boot is set to 8080. So outside of the Docker Container, we will use the port number 80, and it is mapped to 8080 and will reach to the Spring Boot application.
 
-In the above command `ubuntu` is the name of the user, you can change the username appropriately.
+As you run the command, you can open up your browser, you can go to this url http://localhost:80/docker-java-app/test
 
-**NOTE:** : You need to logout and login back for the changes to be reflected.
+Then you will see the container is returning the string message with date as below;
 
+docker-web-test
 
-### Docker is Installed, up and running 🥳🥳
+Go back to TOC
 
-Use the same command again, to verify that docker is up and running.
+4 Getting Inside The Docker Container
+While our container is running, we can get inside the running container for different purposes like checking out the logging, configuration and other stuff. Before getting inside the container, we need to know the container id of our container. To do so, let's first list the running containers with the following command;
 
-```
-docker run hello-world
-```
+	docker container ls
+A successful output example is as below;
 
-Output should look like:
+C:\00_ANA\JavaEE\WS\docker-java-app-example>docker container ls
+CONTAINER ID        IMAGE                         COMMAND                  CREATED             STATUS              PORTS                  NAMES
+159c3ee8ef39        docker-java-hello-world-app   "java -jar docker-ja…"   7 minutes ago       Up 7 minutes        0.0.0.0:80->8080/tcp   adoring_jackson
+You can see the container id on the left-most part of the output. For this example, the container id is "159c3ee8ef39". Each container will have a different hash, so when you run it, it will be different. We are going to use this container id to get into the docker container as below;
 
-```
-....
-....
-Hello from Docker!
-This message shows that your installation appears to be working correctly.
-...
-...
-```
+	docker exec -it <container_id> /bin/bash
+The "/bin/bash" at the end denotes that we are going to use bash shell, which our image has.
 
+A successful output is as below;
 
-### Build your first Docker Image
+	C:\00_ANA\JavaEE\WS\docker-java-app-example>docker exec -it 159c3ee8ef39 /bin/bash
+	bash-4.4# pwd
+	/app
+	bash-4.4# ls
+	docker-java-app-example.jar
+	bash-4.4# ps -ef
+	PID   USER     TIME  COMMAND
+	    1 root      0:08 java -jar docker-java-app-example.jar
+	   45 root      0:00 /bin/bash
+	   53 root      0:00 ps -ef
+	bash-4.4# exit
+	exit
+	
+	C:\00_ANA\JavaEE\WS\docker-java-app-example>
+As you can see, the commands "pwd", "ls" and "ps -ef" successfully ran. We can see that our jar file stand in the "app" folder as we have configured in our Dockerfile. We can easily exit with the "exit" command.
 
-You need to change the username accoringly in the below command
+Go back to TOC
 
-```
-docker build -t docker/my-first-docker-image:latest .
-```
+5 Stopping The Docker Container
+To stop the docker container, we are going to use this command;
 
-Output of the above command
+	docker stop <container_id>
+It is as simple as that. Remember that when we ran the docker container, we have the Spring Boot output. I'm using windows while writing this repository and if you hit ctrl+c, even if you are out of the scope of the logging output of Spring Boot, the container is still alive. To stop it, you have to use the command above. A successful example is as below;
 
-```
-    Sending build context to Docker daemon  992.8kB
-    Step 1/6 : FROM ubuntu:latest
-    latest: Pulling from library/ubuntu
-    677076032cca: Pull complete
-    Digest: sha256:9a0bdde4188b896a372804be2384015e90e3f84906b750c1a53539b585fbbe7f
-    Status: Downloaded newer image for ubuntu:latest
-     ---> 58db3edaf2be
-    Step 2/6 : WORKDIR /app
-     ---> Running in 630f5e4db7d3
-    Removing intermediate container 630f5e4db7d3
-     ---> 6b1d9f654263
-    Step 3/6 : COPY . /app
-     ---> 984edffabc23
-    Step 4/6 : RUN apt-get update && apt-get install -y python3 python3-pip
-     ---> Running in a558acdc9b03
-    Step 5/6 : ENV NAME World
-     ---> Running in 733207001f2e
-    Removing intermediate container 733207001f2e
-     ---> 94128cf6be21
-    Step 6/6 : CMD ["python3", "app.py"]
-     ---> Running in 5d60ad3a59ff
-    Removing intermediate container 5d60ad3a59ff
-     ---> 960d37536dcd
-    Successfully built 960d37536dcd
-    Successfully tagged docker/my-first-docker-image:latest
-```
+C:\00_ANA\JavaEE\WS\docker-java-app-example>docker container ls
+CONTAINER ID        IMAGE                         COMMAND                  CREATED             STATUS              PORTS                  NAMES
+159c3ee8ef39        docker-java-hello-world-app   "java -jar docker-ja…"   16 minutes ago      Up 16 minutes       0.0.0.0:80->8080/tcp   adoring_jackson
 
-### Verify Docker Image is created
+C:\00_ANA\JavaEE\WS\docker-java-app-example>docker container stop 159c3ee8ef39
+159c3ee8ef39
 
-```
-docker images
-```
+C:\00_ANA\JavaEE\WS\docker-java-app-example>docker container ls
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
 
-Output 
+C:\00_ANA\JavaEE\WS\docker-java-app-example>
+Go back to TOC
 
-```
-REPOSITORY                         TAG       IMAGE ID       CREATED          SIZE
-docker/my-first-docker-image       latest    960d37536dcd   26 seconds ago   467MB
-ubuntu                             latest    58db3edaf2be   13 days ago      77.8MB
-hello-world                        latest    feb5d9fea6a5   16 months ago    13.3kB
-```
-
+6 Cheat Sheet
+Maven install to create the fat jar
+	mvn clean install
+Docker build
+	docker build --tag=docker-java-hello-world-app .
+Docker run
+	docker run -p 80:8080 docker-java-hello-world-app
+Test the app
+	http://localhost/docker-java-app/test
+Get the container id
+	docker container ls
+Get into the app
+	docker exec -it <container_id> /bin/bash
+To stop the container
+	docker container stop <container_id>
+![Docker-containerzation](https://github.com/user-attachments/assets/170494e6-e0b8-4984-b023-f9f5a7f61394)
+![4](https://github.com/user-attachments/assets/ae1a89fb-c223-4ddf-b2b5-2a705ad16a06)
+![3 2](https://github.com/user-attachments/assets/0ef40ddc-8be9-41c2-ad7d-fc392f535296)
+![3 1](https://github.com/user-attachments/assets/caf6c24c-f9b5-47c8-a398-af8f7a62cbae)
+![2](https://github.com/user-attachments/assets/f15d0398-3cdc-4c66-9d17-d78a43363a99)
+![1](https://github.com/user-attachments/assets/8136e270-aa3a-4528-9604-5328b8f3c40e)
 
