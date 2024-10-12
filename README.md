@@ -54,3 +54,106 @@ See 'docker run --help'.
 This can mean two things, 
 1. Docker deamon is not running.
 2. Your user does not have access to run docker commands.
+
+### Start Docker daemon
+
+You use the below command to verify if the docker daemon is actually started and Active
+
+```
+sudo systemctl status docker
+```
+
+If you notice that the docker daemon is not running, you can start the daemon using the below command
+
+```
+sudo systemctl start docker
+```
+
+
+### Grant Access to your user to run docker commands
+
+To grant access to your user to run the docker command, you should add the user to the Docker Linux group. Docker group is create by default when docker is installed.
+
+```
+sudo usermod -aG docker ubuntu
+```
+
+In the above command `ubuntu` is the name of the user, you can change the username appropriately.
+
+**NOTE:** : You need to logout and login back for the changes to be reflected.
+
+
+### Docker is Installed, up and running 🥳🥳
+
+Use the same command again, to verify that docker is up and running.
+
+```
+docker run hello-world
+```
+
+Output should look like:
+
+```
+....
+....
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+...
+...
+```
+
+
+### Build your first Docker Image
+
+You need to change the username accoringly in the below command
+
+```
+docker build -t docker/my-first-docker-image:latest .
+```
+
+Output of the above command
+
+```
+    Sending build context to Docker daemon  992.8kB
+    Step 1/6 : FROM ubuntu:latest
+    latest: Pulling from library/ubuntu
+    677076032cca: Pull complete
+    Digest: sha256:9a0bdde4188b896a372804be2384015e90e3f84906b750c1a53539b585fbbe7f
+    Status: Downloaded newer image for ubuntu:latest
+     ---> 58db3edaf2be
+    Step 2/6 : WORKDIR /app
+     ---> Running in 630f5e4db7d3
+    Removing intermediate container 630f5e4db7d3
+     ---> 6b1d9f654263
+    Step 3/6 : COPY . /app
+     ---> 984edffabc23
+    Step 4/6 : RUN apt-get update && apt-get install -y python3 python3-pip
+     ---> Running in a558acdc9b03
+    Step 5/6 : ENV NAME World
+     ---> Running in 733207001f2e
+    Removing intermediate container 733207001f2e
+     ---> 94128cf6be21
+    Step 6/6 : CMD ["python3", "app.py"]
+     ---> Running in 5d60ad3a59ff
+    Removing intermediate container 5d60ad3a59ff
+     ---> 960d37536dcd
+    Successfully built 960d37536dcd
+    Successfully tagged docker/my-first-docker-image:latest
+```
+
+### Verify Docker Image is created
+
+```
+docker images
+```
+
+Output 
+
+```
+REPOSITORY                         TAG       IMAGE ID       CREATED          SIZE
+docker/my-first-docker-image       latest    960d37536dcd   26 seconds ago   467MB
+ubuntu                             latest    58db3edaf2be   13 days ago      77.8MB
+hello-world                        latest    feb5d9fea6a5   16 months ago    13.3kB
+```
+
+
